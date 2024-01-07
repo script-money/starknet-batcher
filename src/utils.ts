@@ -63,3 +63,15 @@ export async function loadAccounts(
 export function sleep(time: number) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
+
+export function processError(error: Error): string {
+  const errorMessage = error.message.split("\n")[1];
+  let errorCode;
+  try {
+    errorCode = errorMessage.split(":")[0];
+  } catch (error) {
+    console.log("get code fail", errorMessage);
+    errorCode = "-1";
+  }
+  return errorCode;
+}
