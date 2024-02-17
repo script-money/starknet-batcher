@@ -1,17 +1,10 @@
-import {
-  Contract,
-  CallData,
-  RawArgs,
-  num,
-  CustomError,
-  Call,
-  MultiType,
-} from "starknet";
+import { Contract, CallData, RawArgs, num, Call, MultiType } from "starknet";
 import { MY_WALLETS } from "./config";
 import { OpInfo } from "./types";
 import { loadAccounts, loadProvider, processError, sleep } from "./utils";
 
-import { nostraInfo } from "./opInfo/nostra";
+// import { nostraInfo } from "./opInfo/nostra";
+import { ethTransfer } from "./opInfo/eth-transfer";
 
 async function run(
   info: OpInfo,
@@ -19,7 +12,7 @@ async function run(
   targetTxPerAccount: number = 1
 ): Promise<void> {
   const { network, ops } = info;
-  console.log("OpInfo:", network, ops);
+  console.log("OpInfo:", network);
 
   const provider = loadProvider(network, false);
   console.log("provider: ", provider.nodeUrl);
@@ -33,6 +26,10 @@ async function run(
     })
   );
   console.log("initNonces:", initNonces);
+  console.log(
+    "accounts:",
+    accounts.map((account) => account.address)
+  );
 
   let txCount = 0;
 
@@ -69,9 +66,12 @@ async function run(
                 await sleep(5 * 1000); // 5 seconds per tx
               } catch (error: any) {
                 const errorCode = processError(error);
+                console.log("code:", errorCode, error);
                 if (errorCode == "63") {
+                  console.warn("Error 63, sleeping for 60 seconds");
                   await sleep(60 * 1000);
                 } else if (error == "40") {
+                  console.warn("Error 400, add nonce");
                   initNonces[accountIndex] = num.toBigInt(
                     await account.getNonce()
                   );
@@ -102,8 +102,10 @@ async function run(
             if (errorCode == "-1") {
               throw error;
             } else if (errorCode == "63") {
+              console.warn("Error 63, sleeping for 60 seconds");
               await sleep(60 * 1000);
             } else if (error == "40") {
+              console.warn("Error 400, add nonce");
               initNonces[accountIndex] = num.toBigInt(await account.getNonce());
             }
           }
@@ -113,6 +115,6 @@ async function run(
   }
 }
 
-run(nostraInfo, ["approve", "mint"], 1).catch((err) =>
+run(ethTransfer, ["transfer"], 1).catch((err) =>
   console.error("Error in run:", err)
 );
