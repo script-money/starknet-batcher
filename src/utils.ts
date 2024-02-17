@@ -5,7 +5,7 @@ import {
   ProviderOptions,
   RpcProvider,
 } from "starknet";
-import { AccountFile, Network, WalletName } from "./types";
+import { Network, WalletName } from "./types";
 import { networks, walletsRoot } from "./config";
 import { homedir } from "os";
 import { readFileSync } from "fs";
@@ -23,10 +23,10 @@ export async function recoverPrivateKey(
 
 export function loadProvider(
   network: Network,
-  selectRandom: boolean = false
+  selectRandom = false
 ): RpcProvider {
   const networkUrls = networks[network];
-  if (networkUrls.length == 0) {
+  if (networkUrls.length === 0) {
     throw new Error("no network url found.");
   }
   const nodeUrl = selectRandom
@@ -38,25 +38,27 @@ export function loadProvider(
 }
 
 export async function loadAccounts(
-  wallets: WalletName[],
+  wallets: WalletName[] = [],
   provider: ProviderInterface | ProviderOptions
 ): Promise<Account[]> {
   const password = await ux.prompt("Input your password", {
     type: "hide",
   });
   const homeDir = homedir();
-  const accounts: Account[] = [];
-  for (const wallet of wallets) {
-    const accountPath = join(homeDir, walletsRoot, wallet, "account.json");
-    const accountString = readFileSync(accountPath).toString();
-    const keystorePath = join(homeDir, walletsRoot, wallet, "keystore.json");
-    const keystoreString = readFileSync(keystorePath).toString();
-    const privateKey = await recoverPrivateKey(keystoreString, password);
-    const accountAddress = (JSON.parse(accountString) as AccountFile).deployment
-      .address;
-    const account = new Account(provider, accountAddress!, privateKey!, "1");
-    accounts.push(account);
-  }
+  const accounts: Account[] = await Promise.all(
+    wallets.map(async (wallet) => {
+      const accountPath = join(homeDir, walletsRoot, wallet, "account.json");
+      const keystorePath = join(homeDir, walletsRoot, wallet, "keystore.json");
+      const [accountString, keystoreString] = await Promise.all([
+        readFileSync(accountPath).toString(),
+        readFileSync(keystorePath).toString(),
+      ]);
+      const privateKey = await recoverPrivateKey(keystoreString, password);
+      const accountAddress =
+        JSON.parse(accountString)?.deployment?.address ?? null;
+      return new Account(provider, accountAddress, privateKey, "1");
+    })
+  );
   return accounts;
 }
 
@@ -70,7 +72,6 @@ export function processError(error: Error): string {
   try {
     errorCode = errorMessage.split(":")[0];
   } catch (error) {
-    console.log("get code fail", errorMessage);
     errorCode = "-1";
   }
   return errorCode;
