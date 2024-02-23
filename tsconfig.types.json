@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target":"ES2020",
+    "declaration": true,
+    "moduleResolution": "Node",
+    "emitDeclarationOnly": true,
+    "outDir": "./types",
+    "noEmit": false,
+    "strict": true
+  },
+  "include": [
+    "./src/main.ts",
+    "./src/types.ts"
+  ],
+  "exclude": [
+    "./node_modules",
+    "./src/config.ts",
+    "./src/utils.ts"
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "starknet-batcher",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A tool to batch operate mutiple accounts on Starknet.",
   "license": "MIT",
   "keywords": [
@@ -9,20 +9,27 @@
   ],
   "author": "script-money",
   "type": "module",
-  "repository": "https://github.com/script-money/starknet-batcher",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/script-money/starknet-batcher.git"
+  },
+  "main": "dist/main.js",
+  "types": "types/main.d.ts",
   "scripts": {
-    "build": "bun build ./src/main.ts --outdir ./dist --target node",
+    "build": "bun build ./src/main.ts --outdir ./dist --target node && bun run build:declaration",
+    "build:declaration": "tsc --project tsconfig.types.json",
     "test": "bun test"
   },
   "dependencies": {
-    "@oclif/core": "^3.15.1",
-    "@types/node": "^20.10.5",
+    "@oclif/core": "^3.19.5",
+    "@types/node": "^20.11.20",
     "ethereumjs-wallet": "^1.0.2",
     "starknet": "^5.24.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.7"
+    "abi-wan-kanabi": "^2.2.1",
+    "bun-types": "^1.0.29"
   }
 }
