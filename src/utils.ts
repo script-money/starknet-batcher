@@ -5,12 +5,13 @@ import {
   ProviderOptions,
   RpcProvider,
 } from "starknet";
-import { Network, WalletName } from "./types";
-import { networks, walletsRoot } from "./config";
 import { homedir } from "os";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { ux } from "@oclif/core";
+
+import { Network, WalletName } from "./types";
+import { networks, walletsRoot } from "./config";
 
 export async function recoverPrivateKey(
   keystore: string,
@@ -39,21 +40,33 @@ export function loadProvider(
 
 export async function loadAccounts(
   wallets: WalletName[] = [],
-  provider: ProviderInterface | ProviderOptions
+  provider: ProviderInterface | ProviderOptions,
+  password?: string
 ): Promise<Account[]> {
-  const password = await ux.prompt("Input your password", {
-    type: "hide",
-  });
+  const resolvedPassword =
+    password ||
+    (await ux.prompt("Input your password", {
+      type: "hide",
+    }));
+
   const homeDir = homedir();
   const accounts: Account[] = await Promise.all(
     wallets.map(async (wallet) => {
       const accountPath = join(homeDir, walletsRoot, wallet, "account.json");
       const keystorePath = join(homeDir, walletsRoot, wallet, "keystore.json");
+
+      if (!existsSync(accountPath) || !existsSync(keystorePath)) {
+        throw new Error(`No path found in ~/${walletsRoot}/${wallet}`);
+      }
+
       const [accountString, keystoreString] = await Promise.all([
         readFileSync(accountPath).toString(),
         readFileSync(keystorePath).toString(),
       ]);
-      const privateKey = await recoverPrivateKey(keystoreString, password);
+      const privateKey = await recoverPrivateKey(
+        keystoreString,
+        resolvedPassword
+      );
       const accountAddress =
         JSON.parse(accountString)?.deployment?.address ?? null;
       return new Account(provider, accountAddress, privateKey, "1");
@@ -70,7 +83,7 @@ export function processError(error: Error): string {
   const errorMessage = error.message.split("\n")[1];
   let errorCode;
   try {
-    errorCode = errorMessage.split(":")[0];
+    errorCode = errorMessage.split(":")[0].trim();
   } catch (error) {
     errorCode = "-1";
   }

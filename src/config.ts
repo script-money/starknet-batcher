@@ -1,35 +1,5 @@
 export const walletsRoot = ".starkli-wallets";
 
-export const MY_WALLETS = ["scriptmoney"];
-// export const MY_WALLETS = [
-//   "scriptmoney",
-//   "account2",
-//   "account3",
-//   "account4",
-//   "account5",
-//   "account6",
-//   "account7",
-//   "account8",
-//   "account9",
-//   "account10",
-//   "account11",
-//   "account12",
-//   "account13",
-//   "account14",
-//   "account15",
-//   "account16",
-//   "account17",
-//   "account18",
-//   "account19",
-//   "account20",
-//   "account21",
-//   "account22",
-//   "account23",
-//   "account24",
-//   "account25",
-// ];
-// export const MY_WALLETS = ["test1", "test2", "test3", "test4"];
-
 export const networks = {
   mainnet: [
     "https://starknet-mainnet.reddio.com",

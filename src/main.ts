@@ -1,22 +1,26 @@
 import { Contract, CallData, RawArgs, num, Call, MultiType } from "starknet";
-import { MY_WALLETS } from "./config";
 import { OpInfo } from "./types";
 import { loadAccounts, loadProvider, processError, sleep } from "./utils";
 
-// import { nostraInfo } from "./opInfo/nostra";
-import { ethTransfer } from "./opInfo/eth-transfer";
-
-async function run(
+/**
+ * Executes operations on Starknet based on the operation information.
+ *
+ * @param info - Operation information including network, abi and operations list.
+ * @param opNames - Names of the operation functions to be executed.
+ * @param wallets - Wallet files to perform operations from.
+ * @param password - Optional password for the wallets, set undefined to input manually.
+ * @param targetTxPerAccount - Target number of transactions per account. Default is 1.
+ */
+export async function run(
   info: OpInfo,
   opNames: string[],
+  wallets: string[],
+  password?: string,
   targetTxPerAccount: number = 1
 ): Promise<void> {
   const { network, ops } = info;
-  console.log("OpInfo:", network);
-
   const provider = loadProvider(network, false);
-  console.log("provider: ", provider.nodeUrl);
-  const accounts = await loadAccounts(MY_WALLETS, provider);
+  const accounts = await loadAccounts(wallets, provider, password);
 
   // record init nonces
   const initNonces: bigint[] = await Promise.all(
@@ -33,7 +37,7 @@ async function run(
 
   let txCount = 0;
 
-  while (txCount < targetTxPerAccount * MY_WALLETS.length) {
+  while (txCount < targetTxPerAccount * wallets.length) {
     await Promise.all(
       accounts.map(async (account, accountIndex) => {
         if (!ops) {
@@ -59,22 +63,19 @@ async function run(
                   }
                 );
                 console.log(
-                  `${MY_WALLETS[accountIndex]}: ${response.transaction_hash}`
+                  `${wallets[accountIndex]}: ${response.transaction_hash}`
                 );
                 txCount++;
                 initNonces[accountIndex]++;
                 await sleep(5 * 1000); // 5 seconds per tx
               } catch (error: any) {
                 const errorCode = processError(error);
-                console.log("code:", errorCode, error);
+                console.log("code [1 ops]:", errorCode, error);
                 if (errorCode == "63") {
                   console.warn("Error 63, sleeping for 60 seconds");
                   await sleep(60 * 1000);
-                } else if (error == "40") {
-                  console.warn("Error 400, add nonce");
-                  initNonces[accountIndex] = num.toBigInt(
-                    await account.getNonce()
-                  );
+                } else if (errorCode == "40") {
+                  throw error.message;
                 }
               }
             })
@@ -98,15 +99,14 @@ async function run(
             txCount++;
           } catch (error) {
             const errorCode = processError(error as Error);
-            console.log("code:", errorCode, error);
+            console.log("code [multiple ops]:", errorCode, error);
             if (errorCode == "-1") {
               throw error;
             } else if (errorCode == "63") {
               console.warn("Error 63, sleeping for 60 seconds");
               await sleep(60 * 1000);
-            } else if (error == "40") {
-              console.warn("Error 400, add nonce");
-              initNonces[accountIndex] = num.toBigInt(await account.getNonce());
+            } else if (errorCode == "40") {
+              throw error;
             }
           }
         }
@@ -114,7 +114,3 @@ async function run(
     );
   }
 }
-
-run(ethTransfer, ["transfer"], 1).catch((err) =>
-  console.error("Error in run:", err)
-);
