@@ -11,8 +11,10 @@ A tool to batch operate mutiple accounts on Starknet.
 
 ```
 import { run } from "starknet-batcher";
+import { simpleInfo } from "starknet-batcher/src/opInfo/simple";
 
 // Ensure to replace 'simpleInfo' with your actual operation info object
 // and 'WALLETS' with an array of your wallet addresses.
+const WALLETS = ["test0", "test1", "test2"];
 run(simpleInfo, ["add"], WALLETS);
 ```
