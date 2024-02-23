@@ -9,6 +9,7 @@
   ],
   "author": "script-money",
   "type": "module",
+  "repository": "https://github.com/script-money/starknet-batcher",
   "scripts": {
     "build": "bun build ./src/main.ts --outdir ./dist --target node",
     "test": "bun test"
