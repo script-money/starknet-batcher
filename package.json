@@ -9,9 +9,9 @@
   ],
   "author": "script-money",
   "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/script-money/starknet-batcher.git"
+  "repository": "https://github.com/script-money/starknet-batcher.git",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "main": "dist/main.js",
   "types": "types/main.d.ts",
