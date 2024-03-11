@@ -1,6 +1,6 @@
 {
   "name": "starknet-batcher",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A tool to batch operate mutiple accounts on Starknet.",
   "license": "MIT",
   "keywords": [
@@ -10,7 +10,10 @@
   "author": "script-money",
   "type": "module",
   "homepage": "https://github.com/script-money/starknet-batcher#readme",
-  "repository": "github:script-money/starknet-batcher",
+  "repository": {
+    "type": "git",
+    "url":"https://github.com/script-money/starknet-batcher"
+  },
   "main": "dist/main.js",
   "types": "types/main.d.ts",
   "scripts": {
